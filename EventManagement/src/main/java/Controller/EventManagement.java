@@ -365,7 +365,7 @@ public class EventManagement
 			int noOfServices = sc.nextInt();
 			System.err.println("You're selected "+noOfServices+" services..!");
 			
-			List<Service> clientServices = new ArrayList<>();
+			List<ClientService> clientServices = new ArrayList<>();
 			
 			for(int j=1;j<=noOfServices;j++)
 			{
@@ -378,6 +378,7 @@ public class EventManagement
 				List<ClientEvent> clientEvents = (List<ClientEvent>) query.getResultList();
 				
 				ClientService clientService = new ClientService();
+				
 				for(ClientEvent clientEvent : clientEvents)
 				{
 					if(clientEvent.getClient().getClientId() == (client.getClientId()))
@@ -388,10 +389,11 @@ public class EventManagement
 						double totalCostOfAllPeoples = clientEvent.getClientEventNoOfPeople()*service.getServiceCostPerPerson();
 						double totalCostOfAllDays = clientEvent.getClientEventNoOfDays()*service.getServiceCostPerDay();
 						clientService.setClientServiceCost(totalCostOfAllPeoples+totalCostOfAllDays);
-						clientServices.add(service);
+						clientServices.add(clientService);
 						csDao.saveClientService(clientService);
 						double clientEventCost = clientEvent.getClientEventCost()+clientService.getClientServiceCost();
-						clientEvent.setClientEventCost(clientEventCost);						
+						clientEvent.setClientEventCost(clientEventCost);
+						clientEvent.setClientServices(clientServices);
 						ceDao.updateClientEvent(clientEvent, clientEvent.getClientEventId());
 					}
 				}
@@ -429,13 +431,24 @@ public class EventManagement
 					{
 						if(cs.getClientServiceId() == id)
 						{
+							clientServices.remove(cs);
+							ce.setClientServices(clientServices);
+							
+							double clientEventCost = 0;
+							for(ClientService cs2 : clientServices)
+							{
+								clientEventCost += cs2.getClientServiceCost();
+							}
+							ce.setClientEventCost(clientEventCost);
+							ceDao.updateClientEvent(ce,ce.getClientEventId());
+							
 							ClientService deleted = csDao.deleteClientService(cs.getClientServiceId());
 							if(deleted != null)
 							{
 								System.err.println("service removed successfully..!");
 							}
 							else
-								System.err.println("service removed failed..!");
+								System.err.println("service remove   failed..!");
 							
 							return deleted; 
 						}
@@ -445,9 +458,6 @@ public class EventManagement
 		}
 		return null;
 	}
-	
-	
-	
 }
 
 

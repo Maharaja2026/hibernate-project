@@ -14,6 +14,7 @@ public class Service
 	private String serviceName;
 	private double serviceCostPerDay;
 	private double serviceCostPerPerson;
+	
 	public int getServiceId() {
 		return serviceId;
 	}
